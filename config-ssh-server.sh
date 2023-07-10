@@ -53,8 +53,8 @@ if [ $(id -u) -eq 0 ]; then
       read -p "📉 Do you want to delete firewalld and install iptables? (yes or no):" yn
       case $yn in
       [Yy]*)
-        yum remove firewalld
-        yum install iptables iptables-services
+        yum remove firewalld -y
+        yum install iptables iptables-services -y
         service iptables save
         systemctl enable iptables
         echo "📉 iptables now available 📉"
@@ -77,19 +77,48 @@ if [ $(id -u) -eq 0 ]; then
   default_ssh_port_number=22
 
   while true; do
+
     read -p "Enter SSH port number (Press enter to use default port 22): " ssh_port_number
+
     ssh_port_number=${ssh_port_number:-$default_ssh_port_number}
 
-    if [[ "$ssh_port_number" =~ ^[0-9]+$ ]] && [ "$ssh_port_number" -le 9999 ]
-    then
+    if [[ "$ssh_port_number" =~ ^[0-9]+$ ]] && [ "$ssh_port_number" -le 9999 ] then
+      if [ "$ssh_port_number" -ne 22 ]; then
+        echo -e "Port $ssh_port_number" >> /etc/ssh/sshd_config
+      else
+        sed -i 's/#Port 22/Port 22/' /etc/ssh/sshd_config
+      fi
+      systemctl restart sshd
       break
     else
       echo "Error: Invalid port number. Please enter a number less than 10000."
     fi
   done
 
-  iptables -t nat -A PREROUTING -i $main_interface -p tcp --dport 10000:39999 -j REDIRECT --to-port $ssh_port_number
-  ip6tables -t nat -A PREROUTING -i $main_interface -p tcp --dport 10000:39999 -j REDIRECT --to-port $ssh_port_number
+  default_range_port_number=10000:19999
+
+  echo -e "\nExample Range Port: $default_range_port_number\n"
+
+  while true; do
+
+    read -p "Enter Range port number (Press enter to use default port 10000:19999) max: (10000:49999): " ranger_port_number
+
+    ranger_port_number=${ranger_port_number:-$default_range_port_number}
+
+    if [[ "$ranger_port_number" =~ ^[0-9]{5}:[0-9]{5}$ ]] && [ "$ranger_port_number" -le 49999 ] then
+      IFS=":" read -ra PORTS <<<"$ranger_port_number"
+        if [ "${PORTS[0]}" -le 49999 ] && [ "${PORTS[1]}" -le 49999 ]; then
+        else
+          echo "Error: Please enter a number less than equal 49999."
+        fi
+    else
+      echo "Error: Invalid port range."
+      exit 1
+    fi
+  done
+
+  iptables -t nat -A PREROUTING -i $main_interface -p tcp --dport $ranger_port_number -j REDIRECT --to-port $ssh_port_number
+  ip6tables -t nat -A PREROUTING -i $main_interface -p tcp --dport $ranger_port_number -j REDIRECT --to-port $ssh_port_number
 
   while true; do
     read -p "📉 Do you want to apply the iptables changes or not? (yes or no):" yn
@@ -120,7 +149,7 @@ if [ $(id -u) -eq 0 ]; then
   echo "🚀 run badvpn-udpgw with default port. 🚀"
   sudo screen -AmdS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7300
   echo "📉 add iptables config to your crontab root file. 📉"
-  printf "#! /bin/sh\nmain_interface=$(ip route get 8.8.8.8 | awk -- '{printf $5}')\niptables -t nat -A PREROUTING -i $main_interface -p tcp --dport 10000:39999 -j REDIRECT --to-port $ssh_port_number\nip6tables -t nat -A PREROUTING -i $main_interface -p tcp --dport 10000:39999 -j REDIRECT --to-port $ssh_port_number\necho \"🚀 load iptables set! 🚀\"\nexit 0\n" >/root/setiptables.sh
+  printf "#! /bin/sh\nmain_interface=$(ip route get 8.8.8.8 | awk -- '{printf $5}')\niptables -t nat -A PREROUTING -i $main_interface -p tcp --dport $ranger_port_number  -j REDIRECT --to-port $ssh_port_number\nip6tables -t nat -A PREROUTING -i $main_interface -p tcp --dport $ranger_port_number  -j REDIRECT --to-port $ssh_port_number\necho \"🚀 load iptables set! 🚀\"\nexit 0\n" >/root/setiptables.sh
   chmod +x /root/setiptables.sh && echo "@reboot sh /root/setiptables.sh" >>/var/spool/cron/root
   crontab /var/spool/cron/root && crontab -u root -l && sudo lsof -i -P -n | grep LISTEN
   exit 0
