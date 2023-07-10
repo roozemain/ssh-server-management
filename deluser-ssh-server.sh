@@ -1,15 +1,23 @@
+if ! [ -f "$FILE" ]; then
+	tee adduser-batch.sh << EOF
+#! /usr/bin/env bash
+
+EOF
+fi
+
 #! /usr/bin/env bash
 
 if [ $(id -u) -eq 0 ]; then
   read -p "Enter username : " username
   userdel "$username"
-  [ $? -eq 0 ] && echo "🖥️ The user has been removed successfully! ✅" || echo "🖥️ Cannot find the user! ❌"
+  [ $? -eq 0 ] && echo "🖥️ The user has been removed successfully! ✅" || echo "🖥️ Cannot find the user! ❌"; exit 1
   while true; do
     read -p "🖥️ Do you want to delete the user home directory and mailbox? (yes or no):" yn
     case $yn in
     [Yy]*)
       rm -r /home/$username
       rm -r /var/spool/mail/$username
+      sed -i "/$username/d" adduser-batch.sh
       echo "❤️ Have fun! ❤️"
       break
       ;;
