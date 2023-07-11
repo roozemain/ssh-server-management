@@ -146,6 +146,14 @@ if [ $(id -u) -eq 0 ]; then
   printf "#! /bin/sh\nmain_interface=$(ip route get 8.8.8.8 | awk -- '{printf $5}')\niptables -t nat -A PREROUTING -i $main_interface -p tcp --dport $ranger_port_number  -j REDIRECT --to-port $ssh_port_number\nip6tables -t nat -A PREROUTING -i $main_interface -p tcp --dport $ranger_port_number  -j REDIRECT --to-port $ssh_port_number\necho \"🚀 load iptables set! 🚀\"\nexit 0\n" >/root/setiptables.sh
   chmod +x /root/setiptables.sh && echo "@reboot sh /root/setiptables.sh" >>/var/spool/cron/root
   crontab /var/spool/cron/root && crontab -u root -l && sudo lsof -i -P -n | grep LISTEN
+  FILE=backup.sh
+  # if you want to use this script without run config-ssh-server.sh you need to delete this line.
+  if ! [ -f "$FILE" ]; then
+    tee backup.sh << EOF
+  #! /usr/bin/env bash
+
+  EOF
+  fi
   exit 0
 else
   echo "🤷‍♂️ Only root can run this script! 🤷‍♂️"

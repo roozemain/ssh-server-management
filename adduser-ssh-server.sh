@@ -1,3 +1,8 @@
+#! /usr/bin/env bash
+# Author: rozemyneroozemain@gmail.com
+
+FILE=backup.sh
+
 if ! [ -f "$FILE" ]; then
 	tee backup.sh << EOF
 #! /usr/bin/env bash
