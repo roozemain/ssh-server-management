@@ -84,11 +84,11 @@ if [ $(id -u) -eq 0 ]; then
   if [[ "$ssh_port_number" =~ ^[0-9]+$ ]] && [ "$ssh_port_number" -le 9999 ]; then
     if [ "$ssh_port_number" -ne 22 ]; then
       echo -e "Port $ssh_port_number" >> /etc/ssh/sshd_config
-      sed -i 's/#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
     else
       sed -i 's/#Port 22/Port 22/' /etc/ssh/sshd_config
-      sed -i 's/#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
     fi
+    sed -i 's/#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+    sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
     systemctl restart sshd
   else
     echo "Error: Invalid port number. Please enter a number less than 10000."
