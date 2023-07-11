@@ -39,6 +39,8 @@ detect_distro_phase1
 detect_distro_phase2
 
 main_interface=$(ip route get 8.8.8.8 | awk -- '{printf $5}')
+default_ssh_port_number=22
+default_range_port_number=10000:19999
 
 echo "🚀 Welcome to your SSH Server with multipleports 🚀"
 if [ $(id -u) -eq 0 ]; then
@@ -74,16 +76,13 @@ if [ $(id -u) -eq 0 ]; then
   fi
   echo "📔 config your iptables 📔"
 
-  default_ssh_port_number=22
-  default_range_port_number=10000:19999
-
   read -p "Enter SSH port number (Press enter to use default port 22): " ssh_port_number
 
   ssh_port_number=${ssh_port_number:-$default_ssh_port_number}
 
   if [[ "$ssh_port_number" =~ ^[0-9]+$ ]] && [ "$ssh_port_number" -le 9999 ]; then
     if [ "$ssh_port_number" -ne 22 ]; then
-      echo -e "Port $ssh_port_number" >> /etc/ssh/sshd_config
+      echo -e "\nPort $ssh_port_number\n" >> /etc/ssh/sshd_config
     else
       sed -i 's/#Port 22/Port 22/' /etc/ssh/sshd_config
     fi
