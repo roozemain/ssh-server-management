@@ -1,5 +1,5 @@
 if ! [ -f "$FILE" ]; then
-	tee adduser-batch.sh << EOF
+	tee backup.sh << EOF
 #! /usr/bin/env bash
 
 EOF
@@ -17,7 +17,7 @@ if [ $(id -u) -eq 0 ]; then
   else
     pass=$(perl -e 'print crypt($ARGV[0], "password")' $password)
     useradd -m -p "$pass" "$username"
-    [ $? -eq 0 ] && echo -e "\nuseradd -m -p "\"$pass\"" "\"$username\""\n" >> adduser-batch.sh
+    [ $? -eq 0 ] && echo -e "\nuseradd -m -p "\"$pass\"" "\"$username\""\n" >> backup.sh
     [ $? -eq 0 ] && printf "\n🖥️ User has been added to system! ✅\n" || printf "\n🖥️ Failed to add a user! ❌\n"
   fi
 else

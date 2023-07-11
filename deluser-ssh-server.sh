@@ -1,5 +1,5 @@
 if ! [ -f "$FILE" ]; then
-	tee adduser-batch.sh << EOF
+	tee backup.sh << EOF
 #! /usr/bin/env bash
 
 EOF
@@ -17,7 +17,7 @@ if [ $(id -u) -eq 0 ]; then
     [Yy]*)
       rm -r /home/$username
       rm -r /var/spool/mail/$username
-      sed -i "/$username/d" adduser-batch.sh
+      sed -i "/$username/d" backup.sh
       echo "❤️ Have fun! ❤️"
       break
       ;;
