@@ -100,7 +100,7 @@ if [ $(id -u) -eq 0 ]; then
 
   ranger_port_number=${ranger_port_number:-$default_range_port_number}
 
-  if [[ "$ranger_port_number" =~ ^[0-9]{5}:[0-9]{5}$ ]] && [ "$ranger_port_number" -le 49999 ]; then
+  if [[ "$ranger_port_number" =~ ^[0-9]{5}:[0-9]{5}$ ]]; then
     IFS=":" read -ra PORTS <<<"$ranger_port_number"
     if [ "${PORTS[0]}" -le 49999 ] && [ "${PORTS[1]}" -le 49999 ]; then
       echo "Range: $ranger_port_number"
