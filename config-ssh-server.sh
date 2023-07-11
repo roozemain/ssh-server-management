@@ -150,9 +150,9 @@ if [ $(id -u) -eq 0 ]; then
   # if you want to use this script without run config-ssh-server.sh you need to delete this line.
   if ! [ -f "$FILE" ]; then
     tee backup.sh << EOF
-  #! /usr/bin/env bash
+#! /usr/bin/env bash
 
-  EOF
+EOF
   fi
   exit 0
 else
